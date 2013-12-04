@@ -22,6 +22,7 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 
 	this.OpenDB()
 	c := this.DB.C("user")
+	defer this.CloseDB()
 
 	type result struct {
 		Uid       string
@@ -53,6 +54,4 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	b, _ := json.Marshal(out)
 	w.Write(b)
-
-	this.CloseDB()
 }
