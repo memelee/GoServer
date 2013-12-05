@@ -29,8 +29,8 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	c := this.DB.C("user")
 	defer this.CloseDB()
 
-	one := result{}
-	c.Find(bson.M{"uid": uid}).One(&one)
+	one := &result{}
+	c.Find(bson.M{"uid": uid}).One(one)
 
 	var out map[string]interface{}
 	if pwd != "" && pwd == one.Pwd {
@@ -55,13 +55,13 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
-	log.Println("Server User Login")
+	log.Println("Server User Logout")
 	this.Init(w, r)
 
 	uid := r.FormValue("uid")
 
 	var out map[string]interface{}
-	log.Println("Server User Login Successfully")
+	log.Println("Server User Logout Successfully")
 	out = map[string]interface{}{
 		"uid":       uid,
 		"ok":        1,
