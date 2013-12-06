@@ -7,13 +7,6 @@ import (
 	"net/http"
 )
 
-type result struct {
-	Uid       string
-	Pwd       string
-	Privilege int
-	Status    int
-}
-
 type User struct {
 	Model
 }
@@ -28,6 +21,13 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	this.OpenDB()
 	c := this.DB.C("user")
 	defer this.CloseDB()
+
+	type result struct {
+		Uid       string
+		Pwd       string
+		Privilege int
+		Status    int
+	}
 
 	one := &result{}
 	c.Find(bson.M{"uid": uid}).One(one)
@@ -63,10 +63,8 @@ func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
 	var out map[string]interface{}
 	log.Println("Server User Logout Successfully")
 	out = map[string]interface{}{
-		"uid":       uid,
-		"ok":        1,
-		"privilege": 0,
-		"status":    0,
+		"uid": uid,
+		"ok":  1,
 	}
 
 	b, _ := json.Marshal(out)

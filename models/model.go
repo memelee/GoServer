@@ -21,5 +21,7 @@ func (this *Model) OpenDB() {
 }
 
 func (this *Model) CloseDB() {
-	this.Session.Close()
+	if !config.Lasting {
+		this.Session.Close()
+	}
 }
