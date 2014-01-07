@@ -15,12 +15,12 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server User Login")
 	this.Init(w, r)
 
+	this.OpenDB()
+	defer this.CloseDB()
+	c := this.DB.C("user")
+
 	uid := r.FormValue("uid")
 	pwd := r.FormValue("pwd")
-
-	this.OpenDB()
-	c := this.DB.C("user")
-	defer this.CloseDB()
 
 	type result struct {
 		Uid       string
@@ -59,14 +59,11 @@ func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
 	this.Init(w, r)
 
 	uid := r.FormValue("uid")
-
-	var out map[string]interface{}
 	log.Println("Server User Logout Successfully")
-	out = map[string]interface{}{
+
+	b, _ := json.Marshal(map[string]interface{}{
 		"uid": uid,
 		"ok":  1,
-	}
-
-	b, _ := json.Marshal(out)
+	})
 	w.Write(b)
 }
