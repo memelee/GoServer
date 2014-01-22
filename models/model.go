@@ -4,13 +4,8 @@ import (
 	"GoServer/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"log"
 	"net/http"
 )
-
-type Result struct {
-	Id int
-}
 
 type Model struct {
 	Session *mgo.Session
@@ -33,22 +28,25 @@ func (this *Model) CloseDB() {
 }
 
 func (this *Model) GetID(c string) int {
-	inc := bson.M{
-		"$inc": bson.M{
-			"id": 1,
-		},
+	type result struct {
+		Value struct {
+			Id int
+		}
 	}
-	q := bson.M{
-		"name": c,
-	}
+
 	cmd := bson.M{
 		"findAndModify": "ids",
-		"query":         q,
-		"update":        inc,
-		"upsert":        true,
+		"query": bson.M{
+			"name": c,
+		},
+		"update": bson.M{
+			"$inc": bson.M{
+				"id": 1,
+			},
+		},
+		"upsert": true,
 	}
-	one := &Result{}
+	one := &result{}
 	_ = this.DB.Run(cmd, one)
-	log.Println(one.Id)
-	return one.Id
+	return one.Value.Id
 }

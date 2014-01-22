@@ -32,26 +32,25 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	one := &result{}
 	c.Find(bson.M{"uid": uid}).One(one)
 
-	var out map[string]interface{}
 	if pwd != "" && pwd == one.Pwd {
 		log.Println("Server User Login Successfully")
-		out = map[string]interface{}{
+		b, _ := json.Marshal(map[string]interface{}{
 			"uid":       one.Uid,
 			"ok":        1,
 			"privilege": one.Privilege,
 			"status":    one.Status,
-		}
+		})
+		w.Write(b)
 	} else {
 		log.Println("Server User Login Failed")
-		out = map[string]interface{}{
+		b, _ := json.Marshal(map[string]interface{}{
 			"uid":       one.Uid,
 			"ok":        0,
 			"privilege": 0,
 			"status":    0,
-		}
+		})
+		w.Write(b)
 	}
-	b, _ := json.Marshal(out)
-	w.Write(b)
 }
 
 func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
