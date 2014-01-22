@@ -5,6 +5,7 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net/http"
+	"time"
 )
 
 type Model struct {
@@ -49,4 +50,10 @@ func (this *Model) GetID(c string) int {
 	one := &result{}
 	_ = this.DB.Run(cmd, one)
 	return one.Value.Id
+}
+
+func (this *Model) GetTime() string {
+	t := time.Now().Unix()
+	ft := time.Unix(t, 0).Format("2006-01-02 15:04:05")
+	return ft
 }

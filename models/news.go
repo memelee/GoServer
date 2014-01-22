@@ -22,8 +22,15 @@ func (this *News) Insert(w http.ResponseWriter, r *http.Request) {
 	nid := this.GetID("news")
 	title := r.FormValue("title")
 	news := r.FormValue("news")
+	create_time := this.GetTime()
 
-	err := c.Insert(bson.M{"nid": nid, "title": title, "news": news, "status": 1})
+	err := c.Insert(bson.M{
+		"nid":         nid,
+		"title":       title,
+		"news":        news,
+		"status":      1,
+		"create_time": create_time,
+	})
 	if err != nil {
 		log.Println(err)
 	} else {
