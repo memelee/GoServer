@@ -5,6 +5,7 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -17,9 +18,13 @@ func (this *Model) Init(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 }
 
-func (this *Model) OpenDB() {
-	this.Session, _ = mgo.Dial(config.Host)
+func (this *Model) OpenDB() (err error) {
+	this.Session, err = mgo.Dial(config.Host)
+	if err != nil {
+		return
+	}
 	this.DB = this.Session.DB(config.DB)
+	return
 }
 
 func (this *Model) CloseDB() {
@@ -28,7 +33,7 @@ func (this *Model) CloseDB() {
 	}
 }
 
-func (this *Model) GetID(c string) int {
+func (this *Model) GetID(c string) (id int, err error) {
 	type result struct {
 		Value struct {
 			Id int
@@ -48,12 +53,24 @@ func (this *Model) GetID(c string) int {
 		"upsert": true,
 	}
 	one := &result{}
-	_ = this.DB.Run(cmd, one)
-	return one.Value.Id
+	err = this.DB.Run(cmd, one)
+	id = one.Value.Id
+	return
 }
 
 func (this *Model) GetTime() string {
 	t := time.Now().Unix()
 	ft := time.Unix(t, 0).Format("2006-01-02 15:04:05")
 	return ft
+}
+
+func (this *Model) ParseURL(url string) map[string]string {
+	args := make(map[string]string)
+	path := strings.Trim(url, "/")
+	list := strings.Split(path, "/")
+
+	for i := 1; i < len(list); i += 2 {
+		args[list[i-1]] = list[i]
+	}
+	return args
 }

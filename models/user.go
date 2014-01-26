@@ -11,13 +11,18 @@ type User struct {
 	Model
 }
 
+var uGetSelector = bson.M{"_id": 0}
+
 func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server User Login")
 	this.Init(w, r)
 
-	this.OpenDB()
+	err := this.OpenDB()
 	defer this.CloseDB()
-	c := this.DB.C("user")
+	if err != nil {
+		http.Error(w, "db errpr", 599)
+		return
+	}
 
 	uid := r.FormValue("uid")
 	pwd := r.FormValue("pwd")
@@ -30,27 +35,34 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	one := &result{}
-	c.Find(bson.M{"uid": uid}).One(one)
+	c := this.DB.C("user")
+	c.Find(bson.M{"uid": uid}).Select(uGetSelector).One(one)
 
+	var b []byte
 	if pwd != "" && pwd == one.Pwd {
 		log.Println("Server User Login Successfully")
-		b, _ := json.Marshal(map[string]interface{}{
+		b, err = json.Marshal(map[string]interface{}{
 			"uid":       one.Uid,
 			"ok":        1,
 			"privilege": one.Privilege,
 			"status":    one.Status,
 		})
-		w.Write(b)
 	} else {
 		log.Println("Server User Login Failed")
-		b, _ := json.Marshal(map[string]interface{}{
+		b, err = json.Marshal(map[string]interface{}{
 			"uid":       one.Uid,
 			"ok":        0,
 			"privilege": 0,
 			"status":    0,
 		})
-		w.Write(b)
 	}
+	if err != nil {
+		http.Error(w, "json error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(b)
 }
 
 func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
@@ -60,9 +72,15 @@ func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
 	uid := r.FormValue("uid")
 	log.Println("Server User Logout Successfully")
 
-	b, _ := json.Marshal(map[string]interface{}{
+	b, err := json.Marshal(map[string]interface{}{
 		"uid": uid,
 		"ok":  1,
 	})
+	if err != nil {
+		http.Error(w, "json error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
 	w.Write(b)
 }

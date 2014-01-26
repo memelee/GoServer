@@ -15,30 +15,45 @@ func (this *News) Insert(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server News Insert")
 	this.Init(w, r)
 
-	this.OpenDB()
+	err := this.OpenDB()
 	defer this.CloseDB()
-	c := this.DB.C("news")
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
 
-	nid := this.GetID("news")
 	title := r.FormValue("title")
 	news := r.FormValue("news")
-	create_time := this.GetTime()
+	createTime := this.GetTime()
+	nid, err := this.GetID("news")
+	if err != nil {
+		http.Error(w, "nid error", 599)
+		return
+	}
 
-	err := c.Insert(bson.M{
+	c := this.DB.C("news")
+	err = c.Insert(bson.M{
 		"nid":         nid,
 		"title":       title,
 		"news":        news,
 		"status":      1,
-		"create_time": create_time,
+		"create_time": createTime,
 	})
 	if err != nil {
-		log.Println(err)
-	} else {
-		b, _ := json.Marshal(map[string]interface{}{
-			"nid":    nid,
-			"ok":     1,
-			"status": 1,
-		})
-		w.Write(b)
+		http.Error(w, "insert error", 599)
+		return
 	}
+
+	b, err := json.Marshal(map[string]interface{}{
+		"nid":    nid,
+		"ok":     1,
+		"status": 1,
+	})
+	if err != nil {
+		http.Error(w, "json error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(b)
 }
