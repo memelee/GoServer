@@ -13,7 +13,7 @@ type Problem struct {
 }
 
 var pGetSelector = bson.M{"_id": 0}
-var pListSelector = bson.M{"_id": 0, "pid": 1, "title": 1, "source": 1}
+var pListSelector = bson.M{"_id": 0, "pid": 1, "title": 1, "source": 1, "status": 1}
 
 // POST /problem/insert
 func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
@@ -107,6 +107,7 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	type problem struct {
 		Pid    int
 		Title  string
+		Source string
 		Status int
 	}
 	var list []*problem
