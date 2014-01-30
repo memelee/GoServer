@@ -19,16 +19,16 @@ func (this *Model) Init(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *Model) OpenDB() (err error) {
-	this.Session, err = mgo.Dial(config.Host)
+	this.Session, err = mgo.Dial(config.DBHost)
 	if err != nil {
 		return
 	}
-	this.DB = this.Session.DB(config.DB)
+	this.DB = this.Session.DB(config.DBName)
 	return
 }
 
 func (this *Model) CloseDB() {
-	if !config.Lasting {
+	if !config.DBLasting {
 		this.Session.Close()
 	}
 }

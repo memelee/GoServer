@@ -81,7 +81,7 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	this.Init(w, r)
 
 	args := this.ParseURL(r.URL.Path[2:])
-	_, err := this.CheckQuery(args)
+	query, err := this.CheckQuery(args)
 	if err != nil {
 		http.Error(w, "args error", 400)
 	}
@@ -93,28 +93,53 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// c := this.DB.C("problem")
+	c := this.DB.C("problem")
+	q := c.Find(query).Select(pListSelector).Sort("pid")
+	if v, ok := args["limit"]; ok {
+		limit, err := strconv.Atoi(v)
+		if err != nil {
+			http.Error(w, "args error", 400)
+			return
+		}
+		q = q.Limit(limit)
+	}
 
+	type problem struct {
+		Pid    int
+		Title  string
+		Status int
+	}
+	var list []*problem
+	err = q.All(&list)
+	if err != nil {
+		http.Error(w, "query error", 599)
+		return
+	}
+
+	b, err := json.Marshal(map[string]interface{}{
+		"list": list,
+	})
+	if err != nil {
+		http.Error(w, "json error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(b)
 }
 
 func (this *Problem) CheckQuery(args map[string]string) (query bson.M, err error) {
 	query = make(bson.M)
-	if args["source"] != "" {
-		query["source"] = args["source"]
+	if v, ok := args["source"]; ok {
+		query["source"] = v
 	}
-	if args["offset"] != "" {
+	if v, ok := args["offset"]; ok {
 		var offset int
-		offset, err = strconv.Atoi(args["offset"])
+		offset, err = strconv.Atoi(v)
 		if err != nil {
 			return
 		}
 		query["pid"] = bson.M{"$gte": offset}
-	}
-	if args["limit"] != "" {
-		_, err = strconv.Atoi(args["limit"])
-		if err != nil {
-			return
-		}
 	}
 	return
 }
