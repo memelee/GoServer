@@ -2,76 +2,83 @@ package models
 
 import (
 	"encoding/json"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"strconv"
 )
 
+type id struct {
+	Pid    int `json:"pid"bson:"pid"`
+	Status int `json:"status"bson:"status"`
+}
+
+type problem struct {
+	Pid int `json:"pid"bson:"pid"`
+
+	Time   int `json:"time"bson:"time"`
+	Memory int `json:"memory"bson:"memory"`
+
+	Title       string `json:"title"bson:"title"`
+	Description string `json:"description"bson:"description"`
+	Input       string `json:"input"bson:"input"`
+	Output      string `json:"output"bson:"output"`
+	Source      string `json:"source"bson:"source"`
+	Hint        string `json:"hint"bson:"hint"`
+
+	In  string `json:"in"bson:"in"`
+	Out string `json:"out"bson:"out"`
+
+	Solve  int `json:"solve"bson:"solve"`
+	Submit int `json:"submit"bson:"submit"`
+
+	Status int    `json:"status"bson:"status"`
+	Create string `json:"create"bson:"create"`
+}
+
+var pDetailSelector = bson.M{"_id": 0}
+var pStatusSelector = bson.M{"_id": 0, "pid": 1, "status": 1}
+var pListSelector = bson.M{"_id": 0, "pid": 1, "title": 1, "source": 1, "solve": 1, "submit": 1, "status": 1}
+
 type Problem struct {
 	Model
 }
-
-var pGetSelector = bson.M{"_id": 0}
-var pListSelector = bson.M{"_id": 0, "pid": 1, "title": 1, "source": 1, "solve": 1, "submit": 1, "status": 1}
 
 // POST /problem/insert
 func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem Insert")
 	this.Init(w, r)
 
-	err := this.OpenDB()
+	var one problem
+	err := this.LoadJson(r.Body, &one)
+	if err != nil {
+		http.Error(w, "load error", 400)
+	}
+
+	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
 		http.Error(w, "db error", 599)
 		return
 	}
 
-	title := r.FormValue("title")
-	source := r.FormValue("source")
-	time := r.FormValue("time")
-	memory := r.FormValue("memory")
-	description := r.FormValue("description")
-	input := r.FormValue("input")
-	output := r.FormValue("output")
-	sampleInput := r.FormValue("sampleInput")
-	sampleOutput := r.FormValue("sampleOutput")
-	hint := r.FormValue("hint")
-	createTime := this.GetTime()
-	pid, err := this.GetID("problem")
+	one.Status = 0
+	one.Create = this.GetTime()
+	one.Pid, err = this.GetID("problem")
 	if err != nil {
 		http.Error(w, "pid error", 599)
 		return
 	}
 
 	c := this.DB.C("problem")
-	err = c.Insert(bson.M{
-		"pid":           pid,
-		"title":         title,
-		"time":          time,
-		"memory":        memory,
-		"description":   description,
-		"input":         input,
-		"output":        output,
-		"sample_input":  sampleInput,
-		"sample_output": sampleOutput,
-		"source":        source,
-		"hint":          hint,
-		"solve":         0,
-		"submit":        0,
-		"status":        1,
-		"create_time":   createTime,
-	})
+	err = c.Insert(&one)
 	if err != nil {
 		http.Error(w, "insert error", 599)
 		return
 	}
 
-	b, err := json.Marshal(map[string]interface{}{
-		"pid":    pid,
-		"ok":     1,
-		"status": 1,
-	})
+	b, err := json.Marshal(&id{one.Pid, one.Status})
 	if err != nil {
 		http.Error(w, "json error", 599)
 		return
@@ -81,13 +88,116 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-// GET /problem/list/offset/<offset>/limit/<limit>/source/<source>
+//POST /problem/update/pid/<pid>
+func (this *Problem) Update(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server Problem Update")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	pid, err := strconv.Atoi(args["pid"])
+	if err != nil {
+		http.Error(w, "args error", 400)
+		return
+	}
+
+	var ori problem
+	err = this.LoadJson(r.Body, &ori)
+	if err != nil {
+		http.Error(w, "load error", 400)
+		return
+	}
+
+	var alt map[string]interface{}
+	if ori.Title != "" {
+		alt["title"] = ori.Title
+	}
+	if ori.Description != "" {
+		alt["description"] = ori.Description
+	}
+	if ori.Input != "" {
+		alt["input"] = ori.Input
+	}
+	if ori.Output != "" {
+		alt["output"] = ori.Output
+	}
+	if ori.Source != "" {
+		alt["source"] = ori.Source
+	}
+	if ori.Hint != "" {
+		alt["hint"] = ori.Hint
+	}
+	if ori.In != "" {
+		alt["in"] = ori.In
+	}
+	if ori.Out != "" {
+		alt["out"] = ori.Out
+	}
+	if ori.Time > 0 {
+		alt["time"] = ori.Time
+	}
+	if ori.Memory > 0 {
+		alt["memory"] = ori.Memory
+	}
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	err = this.DB.C("problem").Update(bson.M{"pid": pid}, bson.M{"$set": alt})
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 400)
+		return
+	} else if err != nil {
+		http.Error(w, "update error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
+// GET /problem/status/pid/<pid>
+func (this *Problem) Status(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server Problem Status")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	pid, err := strconv.Atoi(args["pid"])
+	if err != nil {
+		http.Error(w, "args error", 400)
+		return
+	}
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	// TODO
+	err = this.DB.C("problem").Update(bson.M{"pid": pid}, bson.M{"$set": bson.M{"status": 1}})
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 400)
+		return
+	} else if err != nil {
+		log.Println(err)
+		http.Error(w, "status error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
+// GET /problem/list/offset/<offset>/limit/<limit>/pid/<pid>/title/<title>/source/<source>
 func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem List")
 	this.Init(w, r)
 
 	args := this.ParseURL(r.URL.Path[2:])
-	query, err := this.CheckQuery(args)
+	query, err := checkQuery(args)
 	if err != nil {
 		http.Error(w, "args error", 400)
 	}
@@ -110,14 +220,6 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 		q = q.Limit(limit)
 	}
 
-	type problem struct {
-		Pid    int
-		Title  string
-		Source string
-		Solve  int
-		Submit int
-		Status int
-	}
 	var list []*problem
 	err = q.All(&list)
 	if err != nil {
@@ -125,9 +227,7 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := json.Marshal(map[string]interface{}{
-		"list": list,
-	})
+	b, err := json.Marshal(map[string]interface{}{"list": list})
 	if err != nil {
 		http.Error(w, "json error", 599)
 		return
@@ -137,11 +237,9 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func (this *Problem) CheckQuery(args map[string]string) (query bson.M, err error) {
+func checkQuery(args map[string]string) (query bson.M, err error) {
 	query = make(bson.M)
-	if v, ok := args["source"]; ok {
-		query["source"] = v
-	}
+
 	if v, ok := args["offset"]; ok {
 		var offset int
 		offset, err = strconv.Atoi(v)
@@ -149,6 +247,21 @@ func (this *Problem) CheckQuery(args map[string]string) (query bson.M, err error
 			return
 		}
 		query["pid"] = bson.M{"$gte": offset}
+	}
+
+	if v, ok := args["pid"]; ok {
+		var pid int
+		pid, err = strconv.Atoi(v)
+		if err != nil {
+			return
+		}
+		query["pid"] = pid
+	}
+	if v, ok := args["title"]; ok {
+		query["title"] = bson.M{"$regex": bson.RegEx{v, "i"}}
+	}
+	if v, ok := args["source"]; ok {
+		query["source"] = bson.M{"$regex": bson.RegEx{v, "i"}}
 	}
 	return
 }

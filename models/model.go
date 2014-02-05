@@ -2,6 +2,8 @@ package models
 
 import (
 	"GoServer/config"
+	"encoding/json"
+	"io"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net/http"
@@ -23,6 +25,7 @@ func (this *Model) OpenDB() (err error) {
 	if err != nil {
 		return
 	}
+
 	this.DB = this.Session.DB(config.DBName)
 	return
 }
@@ -52,8 +55,9 @@ func (this *Model) GetID(c string) (id int, err error) {
 		},
 		"upsert": true,
 	}
-	one := &result{}
-	err = this.DB.Run(cmd, one)
+
+	var one result
+	err = this.DB.Run(cmd, &one)
 	id = one.Value.Id
 	return
 }
@@ -64,13 +68,18 @@ func (this *Model) GetTime() string {
 	return ft
 }
 
-func (this *Model) ParseURL(url string) map[string]string {
-	args := make(map[string]string)
+func (this *Model) LoadJson(r io.Reader, v interface{}) (err error) {
+	err = json.NewDecoder(r).Decode(v)
+	return
+}
+
+func (this *Model) ParseURL(url string) (args map[string]string) {
+	args = make(map[string]string)
 	path := strings.Trim(url, "/")
 	list := strings.Split(path, "/")
 
 	for i := 1; i < len(list); i += 2 {
 		args[list[i-1]] = list[i]
 	}
-	return args
+	return
 }
