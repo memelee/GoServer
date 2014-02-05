@@ -20,9 +20,12 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem Insert")
 	this.Init(w, r)
 
-	this.OpenDB()
+	err := this.OpenDB()
 	defer this.CloseDB()
-	c := this.DB.C("problem")
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
 
 	title := r.FormValue("title")
 	source := r.FormValue("source")
@@ -41,6 +44,7 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c := this.DB.C("problem")
 	err = c.Insert(bson.M{
 		"pid":           pid,
 		"title":         title,
