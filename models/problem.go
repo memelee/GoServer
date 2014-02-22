@@ -69,8 +69,6 @@ func (this *Problem) Detail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(200)
-
 	b, err := json.Marshal(&one)
 	if err != nil {
 		http.Error(w, "json error", 599)

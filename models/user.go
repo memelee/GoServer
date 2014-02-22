@@ -126,8 +126,6 @@ func (this *User) Detail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(200)
-
 	b, err := json.Marshal(&one)
 	if err != nil {
 		http.Error(w, "json error", 599)
@@ -190,4 +188,9 @@ func (this *User) Status(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(200)
+}
+
+// POST /user/list/offset/<offset>/limit/<limit>/uid/<uid>/nick/<nick>
+func (this *User) List(w http.ResponseWriter, r *http.Request) {
+
 }
