@@ -1,6 +1,7 @@
 package models
 
 import (
+	"GoServer/config"
 	"encoding/json"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -158,6 +159,102 @@ func (this *User) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		http.Error(w, "delete error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
+// POST /user/insert
+func (this *User) Insert(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server User Insert")
+	this.Init(w, r)
+
+	var one user
+	err := this.LoadJson(r.Body, &one)
+	if err != nil {
+		http.Error(w, "load errpr", 400)
+		return
+	}
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	one.Privilege = config.PrivilegePU
+	one.Solve = 0
+	one.Submit = 0
+	one.Status = 1
+	one.Create = this.GetTime()
+
+	err = this.DB.C("user").Insert(&one)
+	if err != nil {
+		http.Error(w, "insert error", 599)
+		return
+	}
+
+	b, err := json.Marshal(map[string]interface{}{
+		"uid":       one.Uid,
+		"privilege": one.Privilege,
+		"status":    one.Status,
+	})
+	if err != nil {
+		http.Error(w, "json error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(b)
+}
+
+// POST /user/update/uid/<uid>
+func (this *User) Update(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server User Update")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	uid := args["uid"]
+
+	var ori user
+	err := this.LoadJson(r.Body, &ori)
+	if err != nil {
+		http.Error(w, "load error", 400)
+		return
+	}
+
+	var alt map[string]interface{}
+	if ori.Pwd != "" {
+		alt["pwd"] = ori.Pwd
+	}
+	if ori.Nick != "" {
+		alt["nick"] = ori.Nick
+	}
+	if ori.Mail != "" {
+		alt["mail"] = ori.Mail
+	}
+	if ori.School != "" {
+		alt["school"] = ori.School
+	}
+	if ori.Privilege != config.PrivilegeNA {
+		alt["privilege"] = ori.Privilege
+	}
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	err = this.DB.C("user").Update(bson.M{"uid": uid}, bson.M{"$set": alt})
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 404)
+		return
+	} else if err != nil {
+		http.Error(w, "update error", 599)
 		return
 	}
 

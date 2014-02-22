@@ -13,3 +13,6 @@ var JudgeWA = 5
 var JudgeTLE = 6
 var JudgeMLE = 7
 var JudgeOLE = 8
+
+var PrivilegeNA = 0
+var PrivilegePU = 1

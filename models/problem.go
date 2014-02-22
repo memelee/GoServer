@@ -129,6 +129,8 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	one.Solve = 0
+	one.Submit = 0
 	one.Status = 0
 	one.Create = this.GetTime()
 	one.Pid, err = this.GetID("problem")
