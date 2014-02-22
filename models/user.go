@@ -6,17 +6,20 @@ import (
 	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 type user struct {
-	Uid    string `json:"uid"bson:"uid"`
-	Pwd    string `json:"pwd"bson:"pwd"`
+	Uid string `json:"uid"bson:"uid"`
+	Pwd string `json:"pwd"bson:"pwd"`
+
 	Nick   string `json:"nick"bson:"nick"`
 	Mail   string `json:"mail"bson:"mail"`
 	School string `json:"school"bson:"school"`
 
 	Privilege int `json:"privilege"bson:"privilege"`
+
+	Solve  int `json:"solve"bson:"solve"`
+	Submit int `json:"submit"bson:"submit"`
 
 	Status int    `json:"status"bson:"status"`
 	Create string `json:"create"bson:'create'`
@@ -50,8 +53,11 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 
 	var alt user
 	err = this.DB.C("user").Find(bson.M{"uid": ori.Uid}).Select(uDetailSelector).One(&alt)
-	if err != nil {
-		http.Error(w, "query error", 599)
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 404)
+		return
+	} else if err != nil {
+		http.Error(w, "login error", 599)
 		return
 	}
 
@@ -80,7 +86,7 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-// POST /problem/logout
+// POST /user/logout
 func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server User Logout")
 	this.Init(w, r)
@@ -95,19 +101,79 @@ func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+// POST /user/detail/uid/<uid>
+func (this *User) Detail(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server Problem Detail")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	uid := args["uid"]
+
+	err := this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	var one user
+	err = this.DB.C("user").Find(bson.M{"uid": uid}).Select(uDetailSelector).One(&one)
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 404)
+		return
+	} else if err != nil {
+		http.Error(w, "detail error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+
+	b, err := json.Marshal(&one)
+	if err != nil {
+		http.Error(w, "json error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(b)
+}
+
+// POST /user/delete/uid/<uid>
+func (this *User) Delete(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server User Delete")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	uid := args["uid"]
+
+	err := this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	err = this.DB.C("user").Remove(bson.M{"uid": uid})
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 404)
+		return
+	} else if err != nil {
+		http.Error(w, "delete error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
 // POST /user/status/uid/<uid>
 func (this *User) Status(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server User Status")
 	this.Init(w, r)
 
 	args := this.ParseURL(r.URL.Path[2:])
-	uid, err := strconv.Atoi(args["uid"])
-	if err != nil {
-		http.Error(w, "args error", 400)
-		return
-	}
+	uid := args["uid"]
 
-	err = this.OpenDB()
+	err := this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
 		http.Error(w, "db error", 599)
@@ -116,7 +182,7 @@ func (this *User) Status(w http.ResponseWriter, r *http.Request) {
 
 	err = this.DB.C("user").Update(bson.M{"uid": uid}, bson.M{"$inc": bson.M{"status": 1}})
 	if err == mgo.ErrNotFound {
-		http.Error(w, "not found", 400)
+		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
 		http.Error(w, "status error", 599)

@@ -61,10 +61,15 @@ func (this *Problem) Detail(w http.ResponseWriter, r *http.Request) {
 
 	var one problem
 	err = this.DB.C("problem").Find(bson.M{"pid": pid}).Select(pDetailSelector).One(&one)
-	if err != nil {
-		http.Error(w, "query error", 599)
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 404)
+		return
+	} else if err != nil {
+		http.Error(w, "detail error", 599)
 		return
 	}
+
+	w.WriteHeader(200)
 
 	b, err := json.Marshal(&one)
 	if err != nil {
@@ -78,7 +83,7 @@ func (this *Problem) Detail(w http.ResponseWriter, r *http.Request) {
 
 // POST /problem/delete/pid/<pid>
 func (this *Problem) Delete(w http.ResponseWriter, r *http.Request) {
-	log.Println("Server Problem Detail")
+	log.Println("Server Problem Delete")
 	this.Init(w, r)
 
 	args := this.ParseURL(r.URL.Path[2:])
@@ -97,10 +102,10 @@ func (this *Problem) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err = this.DB.C("problem").Remove(bson.M{"pid": pid})
 	if err == mgo.ErrNotFound {
-		http.Error(w, "not found", 400)
+		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "detail error", 599)
+		http.Error(w, "delete error", 599)
 		return
 	}
 
@@ -213,7 +218,7 @@ func (this *Problem) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = this.DB.C("problem").Update(bson.M{"pid": pid}, bson.M{"$set": alt})
 	if err == mgo.ErrNotFound {
-		http.Error(w, "not found", 400)
+		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
 		http.Error(w, "update error", 599)
@@ -244,7 +249,7 @@ func (this *Problem) Status(w http.ResponseWriter, r *http.Request) {
 
 	err = this.DB.C("problem").Update(bson.M{"pid": pid}, bson.M{"$inc": bson.M{"status": 1}})
 	if err == mgo.ErrNotFound {
-		http.Error(w, "not found", 400)
+		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
 		http.Error(w, "status error", 599)
