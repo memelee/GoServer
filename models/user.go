@@ -6,6 +6,7 @@ import (
 	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type user struct {
@@ -30,7 +31,7 @@ type User struct {
 }
 
 var uDetailSelector = bson.M{"_id": 0}
-var uListSelector = bson.M{"_id": 0, "uid": 1, "nick": 1, "status": 1}
+var uListSelector = bson.M{"_id": 0, "uid": 1, "nick": 1, "solve": 1, "submit": 1, "status": 1}
 
 // POST /user/login
 func (this *User) Login(w http.ResponseWriter, r *http.Request) {
@@ -192,5 +193,68 @@ func (this *User) Status(w http.ResponseWriter, r *http.Request) {
 
 // POST /user/list/offset/<offset>/limit/<limit>/uid/<uid>/nick/<nick>
 func (this *User) List(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server Problem List")
+	this.Init(w, r)
 
+	args := this.ParseURL(r.URL.Path[2:])
+	query, err := this.CheckQuery(args)
+	if err != nil {
+		http.Error(w, "args error", 400)
+		return
+	}
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	q := this.DB.C("user").Find(query).Select(uListSelector).Sort("-solve", "submit")
+
+	if v, ok := args["offset"]; ok {
+		offset, err := strconv.Atoi(v)
+		if err != nil {
+			http.Error(w, "args error", 400)
+			return
+		}
+		q = q.Skip(offset)
+	}
+
+	if v, ok := args["limit"]; ok {
+		limit, err := strconv.Atoi(v)
+		if err != nil {
+			http.Error(w, "args error", 400)
+			return
+		}
+		q = q.Limit(limit)
+	}
+
+	var list []*user
+	err = q.All(&list)
+	if err != nil {
+		http.Error(w, "query error", 599)
+		return
+	}
+
+	b, err := json.Marshal(map[string]interface{}{"list": list})
+	if err != nil {
+		http.Error(w, "json error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(b)
+}
+
+func (this *User) CheckQuery(args map[string]string) (query bson.M, err error) {
+	query = make(bson.M)
+
+	if v, ok := args["uid"]; ok {
+		query["uid"] = bson.M{"$regex": bson.RegEx{v, "i"}}
+	}
+	if v, ok := args["nick"]; ok {
+		query["nick"] = bson.M{"$regex": bson.RegEx{v, "i"}}
+	}
+	return
 }

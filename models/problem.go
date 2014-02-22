@@ -263,9 +263,10 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	this.Init(w, r)
 
 	args := this.ParseURL(r.URL.Path[2:])
-	query, err := checkQuery(args)
+	query, err := this.CheckQuery(args)
 	if err != nil {
 		http.Error(w, "args error", 400)
+		return
 	}
 
 	err = this.OpenDB()
@@ -275,8 +276,17 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := this.DB.C("problem")
-	q := c.Find(query).Select(pListSelector).Sort("pid")
+	q := this.DB.C("problem").Find(query).Select(pListSelector).Sort("pid")
+
+	if v, ok := args["offset"]; ok {
+		offset, err := strconv.Atoi(v)
+		if err != nil {
+			http.Error(w, "args error", 400)
+			return
+		}
+		q = q.Skip(offset)
+	}
+
 	if v, ok := args["limit"]; ok {
 		limit, err := strconv.Atoi(v)
 		if err != nil {
@@ -303,17 +313,8 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func checkQuery(args map[string]string) (query bson.M, err error) {
+func (this *Problem) CheckQuery(args map[string]string) (query bson.M, err error) {
 	query = make(bson.M)
-
-	if v, ok := args["offset"]; ok {
-		var offset int
-		offset, err = strconv.Atoi(v)
-		if err != nil {
-			return
-		}
-		query["pid"] = bson.M{"$gte": offset}
-	}
 
 	if v, ok := args["pid"]; ok {
 		var pid int
