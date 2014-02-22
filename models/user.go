@@ -90,7 +90,7 @@ func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-// GET /user/status/uid/<uid>
+// POST /user/status/uid/<uid>
 func (this *User) Status(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server User Status")
 	this.Init(w, r)

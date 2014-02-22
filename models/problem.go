@@ -156,7 +156,7 @@ func (this *Problem) Update(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-// GET /problem/status/pid/<pid>
+// POST /problem/status/pid/<pid>
 func (this *Problem) Status(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem Status")
 	this.Init(w, r)
@@ -188,7 +188,7 @@ func (this *Problem) Status(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-// GET /problem/list/offset/<offset>/limit/<limit>/pid/<pid>/title/<title>/source/<source>
+// POST /problem/list/offset/<offset>/limit/<limit>/pid/<pid>/title/<title>/source/<source>
 func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem List")
 	this.Init(w, r)
