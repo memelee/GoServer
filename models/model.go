@@ -62,9 +62,9 @@ func (this *Model) GetID(c string) (id int, err error) {
 	return
 }
 
-func (this *Model) GetTime() string {
+func (this *Model) GetTime() (ft string) {
 	t := time.Now().Unix()
-	ft := time.Unix(t, 0).Format("2006-01-02 15:04:05")
+	ft = time.Unix(t, 0).Format("2006-01-02 15:04:05")
 	return ft
 }
 

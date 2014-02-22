@@ -9,11 +9,6 @@ import (
 	"strconv"
 )
 
-type id struct {
-	Pid    int `json:"pid"bson:"pid"`
-	Status int `json:"status"bson:"status"`
-}
-
 type problem struct {
 	Pid int `json:"pid"bson:"pid"`
 
@@ -78,7 +73,10 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := json.Marshal(&id{one.Pid, one.Status})
+	b, err := json.Marshal(map[string]interface{}{
+		"pid":    one.Pid,
+		"status": one.Status,
+	})
 	if err != nil {
 		http.Error(w, "json error", 599)
 		return
@@ -177,8 +175,7 @@ func (this *Problem) Status(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO
-	err = this.DB.C("problem").Update(bson.M{"pid": pid}, bson.M{"$set": bson.M{"status": 1}})
+	err = this.DB.C("problem").Update(bson.M{"pid": pid}, bson.M{"$inc": bson.M{"status": 1}})
 	if err == mgo.ErrNotFound {
 		http.Error(w, "not found", 400)
 		return

@@ -2,52 +2,60 @@ package models
 
 import (
 	"encoding/json"
-	"labix.org/v2/mgo/bson"
+	// "labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 )
+
+type news struct {
+	Nid     int    `json:"nid"bson:"nid"`
+	Title   string `json:"title"bson:"title"`
+	Content string `json:"content"bson:"content"`
+
+	Status int    `json:"status"bson:"status"`
+	Create string `json:"create"bson:'create'`
+}
 
 type News struct {
 	Model
 }
 
+// POST /news/insert
 func (this *News) Insert(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server News Insert")
 	this.Init(w, r)
 
-	err := this.OpenDB()
+	var one news
+	err := this.LoadJson(r.Body, &one)
+	if err != nil {
+		http.Error(w, "load error", 400)
+	}
+
+	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
 		http.Error(w, "db error", 599)
 		return
 	}
 
-	title := r.FormValue("title")
-	news := r.FormValue("news")
-	createTime := this.GetTime()
-	nid, err := this.GetID("news")
+	one.Status = 1
+	one.Create = this.GetTime()
+	one.Nid, err = this.GetID("news")
 	if err != nil {
 		http.Error(w, "nid error", 599)
 		return
 	}
 
 	c := this.DB.C("news")
-	err = c.Insert(bson.M{
-		"nid":         nid,
-		"title":       title,
-		"news":        news,
-		"status":      1,
-		"create_time": createTime,
-	})
+	err = c.Insert(&one)
 	if err != nil {
 		http.Error(w, "insert error", 599)
 		return
 	}
 
 	b, err := json.Marshal(map[string]interface{}{
-		"nid":    nid,
-		"ok":     1,
-		"status": 1,
+		"nid":    one.Nid,
+		"status": one.Status,
 	})
 	if err != nil {
 		http.Error(w, "json error", 599)
