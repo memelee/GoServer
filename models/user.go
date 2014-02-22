@@ -38,6 +38,7 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	err := this.LoadJson(r.Body, &ori)
 	if err != nil {
 		http.Error(w, "load error", 400)
+		return
 	}
 
 	err = this.OpenDB()
@@ -48,8 +49,11 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var alt user
-	c := this.DB.C("user")
-	c.Find(bson.M{"uid": ori.Uid}).Select(uDetailSelector).One(&alt)
+	err = this.DB.C("user").Find(bson.M{"uid": ori.Uid}).Select(uDetailSelector).One(&alt)
+	if err != nil {
+		http.Error(w, "query error", 599)
+		return
+	}
 
 	var b []byte
 	if ori.Pwd != "" && ori.Pwd == alt.Pwd {
@@ -85,6 +89,7 @@ func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
 	err := this.LoadJson(r.Body, &one)
 	if err != nil {
 		http.Error(w, "load error", 400)
+		return
 	}
 
 	w.WriteHeader(200)
@@ -114,7 +119,6 @@ func (this *User) Status(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 400)
 		return
 	} else if err != nil {
-		log.Println(err)
 		http.Error(w, "status error", 599)
 		return
 	}

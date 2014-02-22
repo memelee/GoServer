@@ -29,6 +29,7 @@ func (this *News) Insert(w http.ResponseWriter, r *http.Request) {
 	err := this.LoadJson(r.Body, &one)
 	if err != nil {
 		http.Error(w, "load error", 400)
+		return
 	}
 
 	err = this.OpenDB()
@@ -46,8 +47,7 @@ func (this *News) Insert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := this.DB.C("news")
-	err = c.Insert(&one)
+	err = this.DB.C("news").Insert(&one)
 	if err != nil {
 		http.Error(w, "insert error", 599)
 		return

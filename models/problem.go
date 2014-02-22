@@ -33,11 +33,78 @@ type problem struct {
 }
 
 var pDetailSelector = bson.M{"_id": 0}
-var pStatusSelector = bson.M{"_id": 0, "pid": 1, "status": 1}
 var pListSelector = bson.M{"_id": 0, "pid": 1, "title": 1, "source": 1, "solve": 1, "submit": 1, "status": 1}
 
 type Problem struct {
 	Model
+}
+
+// POST /problem/detail/pid/<pid>
+
+func (this *Problem) Detail(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server Problem Detail")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	pid, err := strconv.Atoi(args["pid"])
+	if err != nil {
+		http.Error(w, "args error", 400)
+		return
+	}
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	var one problem
+	err = this.DB.C("problem").Find(bson.M{"pid": pid}).Select(pDetailSelector).One(&one)
+	if err != nil {
+		http.Error(w, "query error", 599)
+		return
+	}
+
+	b, err := json.Marshal(&one)
+	if err != nil {
+		http.Error(w, "json error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(b)
+}
+
+// POST /problem/delete/pid/<pid>
+func (this *Problem) Delete(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server Problem Detail")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	pid, err := strconv.Atoi(args["pid"])
+	if err != nil {
+		http.Error(w, "args error", 400)
+		return
+	}
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	err = this.DB.C("problem").Remove(bson.M{"pid": pid})
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 400)
+		return
+	} else if err != nil {
+		http.Error(w, "detail error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
 }
 
 // POST /problem/insert
@@ -49,6 +116,7 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 	err := this.LoadJson(r.Body, &one)
 	if err != nil {
 		http.Error(w, "load error", 400)
+		return
 	}
 
 	err = this.OpenDB()
@@ -66,8 +134,7 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := this.DB.C("problem")
-	err = c.Insert(&one)
+	err = this.DB.C("problem").Insert(&one)
 	if err != nil {
 		http.Error(w, "insert error", 599)
 		return
@@ -86,7 +153,7 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-//POST /problem/update/pid/<pid>
+// POST /problem/update/pid/<pid>
 func (this *Problem) Update(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem Update")
 	this.Init(w, r)
@@ -180,7 +247,6 @@ func (this *Problem) Status(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 400)
 		return
 	} else if err != nil {
-		log.Println(err)
 		http.Error(w, "status error", 599)
 		return
 	}
