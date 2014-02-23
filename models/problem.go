@@ -55,7 +55,7 @@ func (this *Problem) Detail(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -65,13 +65,13 @@ func (this *Problem) Detail(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "detail error", 599)
+		http.Error(w, "detail error", 500)
 		return
 	}
 
 	b, err := json.Marshal(&one)
 	if err != nil {
-		http.Error(w, "json error", 599)
+		http.Error(w, "json error", 500)
 		return
 	}
 
@@ -94,7 +94,7 @@ func (this *Problem) Delete(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -103,7 +103,7 @@ func (this *Problem) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "delete error", 599)
+		http.Error(w, "delete error", 500)
 		return
 	}
 
@@ -125,7 +125,7 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -135,13 +135,13 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 	one.Create = this.GetTime()
 	one.Pid, err = this.GetID("problem")
 	if err != nil {
-		http.Error(w, "pid error", 599)
+		http.Error(w, "pid error", 500)
 		return
 	}
 
 	err = this.DB.C("problem").Insert(&one)
 	if err != nil {
-		http.Error(w, "insert error", 599)
+		http.Error(w, "insert error", 500)
 		return
 	}
 
@@ -150,7 +150,7 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 		"status": one.Status,
 	})
 	if err != nil {
-		http.Error(w, "json error", 599)
+		http.Error(w, "json error", 500)
 		return
 	}
 
@@ -212,7 +212,7 @@ func (this *Problem) Update(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -221,7 +221,7 @@ func (this *Problem) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "update error", 599)
+		http.Error(w, "update error", 500)
 		return
 	}
 
@@ -243,7 +243,7 @@ func (this *Problem) Status(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -252,7 +252,7 @@ func (this *Problem) Status(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "status error", 599)
+		http.Error(w, "status error", 500)
 		return
 	}
 
@@ -285,7 +285,7 @@ func (this *Problem) Submit(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -294,7 +294,7 @@ func (this *Problem) Submit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "status error", 599)
+		http.Error(w, "status error", 500)
 		return
 	}
 
@@ -316,7 +316,7 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -343,13 +343,13 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	var list []*problem
 	err = q.All(&list)
 	if err != nil {
-		http.Error(w, "query error", 599)
+		http.Error(w, "query error", 500)
 		return
 	}
 
 	b, err := json.Marshal(map[string]interface{}{"list": list})
 	if err != nil {
-		http.Error(w, "json error", 599)
+		http.Error(w, "json error", 500)
 		return
 	}
 

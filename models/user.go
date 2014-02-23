@@ -49,7 +49,7 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -59,7 +59,7 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "login error", 599)
+		http.Error(w, "login error", 500)
 		return
 	}
 
@@ -80,7 +80,7 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	if err != nil {
-		http.Error(w, "json error", 599)
+		http.Error(w, "json error", 500)
 		return
 	}
 
@@ -114,7 +114,7 @@ func (this *User) Detail(w http.ResponseWriter, r *http.Request) {
 	err := this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -124,13 +124,13 @@ func (this *User) Detail(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "detail error", 599)
+		http.Error(w, "detail error", 500)
 		return
 	}
 
 	b, err := json.Marshal(&one)
 	if err != nil {
-		http.Error(w, "json error", 599)
+		http.Error(w, "json error", 500)
 		return
 	}
 
@@ -149,7 +149,7 @@ func (this *User) Delete(w http.ResponseWriter, r *http.Request) {
 	err := this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -158,7 +158,7 @@ func (this *User) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "delete error", 599)
+		http.Error(w, "delete error", 500)
 		return
 	}
 
@@ -180,7 +180,7 @@ func (this *User) Insert(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -192,7 +192,7 @@ func (this *User) Insert(w http.ResponseWriter, r *http.Request) {
 
 	err = this.DB.C("user").Insert(&one)
 	if err != nil {
-		http.Error(w, "insert error", 599)
+		http.Error(w, "insert error", 500)
 		return
 	}
 
@@ -202,7 +202,7 @@ func (this *User) Insert(w http.ResponseWriter, r *http.Request) {
 		"status":    one.Status,
 	})
 	if err != nil {
-		http.Error(w, "json error", 599)
+		http.Error(w, "json error", 500)
 		return
 	}
 
@@ -245,7 +245,7 @@ func (this *User) Update(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -254,7 +254,7 @@ func (this *User) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "update error", 599)
+		http.Error(w, "update error", 500)
 		return
 	}
 
@@ -272,7 +272,7 @@ func (this *User) Status(w http.ResponseWriter, r *http.Request) {
 	err := this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -281,7 +281,7 @@ func (this *User) Status(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "status error", 599)
+		http.Error(w, "status error", 500)
 		return
 	}
 
@@ -298,7 +298,7 @@ func (this *User) Submit(w http.ResponseWriter, r *http.Request) {
 
 	var solve int
 	if v, ok := args["solve"]; ok {
-		solve, err = strconv.Atoi(v)
+		solve, err := strconv.Atoi(v)
 		if err != nil || solve > 1 || solve < 0 {
 			http.Error(w, "args error", 400)
 			return
@@ -307,10 +307,10 @@ func (this *User) Submit(w http.ResponseWriter, r *http.Request) {
 		solve = 0
 	}
 
-	err = this.OpenDB()
+	err := this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -319,7 +319,7 @@ func (this *User) Submit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "status error", 599)
+		http.Error(w, "status error", 500)
 		return
 	}
 
@@ -341,7 +341,7 @@ func (this *User) List(w http.ResponseWriter, r *http.Request) {
 	err = this.OpenDB()
 	defer this.CloseDB()
 	if err != nil {
-		http.Error(w, "db error", 599)
+		http.Error(w, "db error", 500)
 		return
 	}
 
@@ -368,13 +368,13 @@ func (this *User) List(w http.ResponseWriter, r *http.Request) {
 	var list []*user
 	err = q.All(&list)
 	if err != nil {
-		http.Error(w, "query error", 599)
+		http.Error(w, "query error", 500)
 		return
 	}
 
 	b, err := json.Marshal(map[string]interface{}{"list": list})
 	if err != nil {
-		http.Error(w, "json error", 599)
+		http.Error(w, "json error", 500)
 		return
 	}
 
