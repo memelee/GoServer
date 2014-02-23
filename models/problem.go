@@ -259,6 +259,48 @@ func (this *Problem) Status(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+// POST /problem/submit/pid/<pid>/solve/<0/1>
+func (this *Problem) Submit(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server Prblem Submit")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	pid, err := strconv.Atoi(args["pid"])
+	if err != nil {
+		http.Error(w, "args error", 400)
+		return
+	}
+
+	var solve int
+	if v, ok := args["solve"]; ok {
+		solve, err = strconv.Atoi(v)
+		if err != nil || solve > 1 || solve < 0 {
+			http.Error(w, "args error", 400)
+			return
+		}
+	} else {
+		solve = 0
+	}
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	err = this.DB.C("problem").Update(bson.M{"pid": pid}, bson.M{"$inc": bson.M{"solve": solve, "submit": 1}})
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 404)
+		return
+	} else if err != nil {
+		http.Error(w, "status error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
 // POST /problem/list/offset/<offset>/limit/<limit>/pid/<pid>/title/<title>/source/<source>
 func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem List")

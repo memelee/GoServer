@@ -288,6 +288,44 @@ func (this *User) Status(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+// POST /user/submit/uid/<uid>/solve/<0/1>
+func (this *User) Submit(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server User Submit")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	uid := args["uid"]
+
+	var solve int
+	if v, ok := args["solve"]; ok {
+		solve, err = strconv.Atoi(v)
+		if err != nil || solve > 1 || solve < 0 {
+			http.Error(w, "args error", 400)
+			return
+		}
+	} else {
+		solve = 0
+	}
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 599)
+		return
+	}
+
+	err = this.DB.C("user").Update(bson.M{"uid": uid}, bson.M{"$inc": bson.M{"solve": solve, "submit": 1}})
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 404)
+		return
+	} else if err != nil {
+		http.Error(w, "status error", 599)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
 // POST /user/list/offset/<offset>/limit/<limit>/uid/<uid>/nick/<nick>
 func (this *User) List(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem List")
