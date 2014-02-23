@@ -4,15 +4,15 @@ var DBHost = "127.0.0.1"
 var DBName = "oj"
 var DBLasting = false
 
-var JudgePD = 0
-var JudgeRJ = 1
-var JudgeAC = 2
-var JudgeCE = 3
-var JudgeRE = 4
-var JudgeWA = 5
-var JudgeTLE = 6
-var JudgeMLE = 7
-var JudgeOLE = 8
+var JudgePD = 0		//Pending
+var JudgeRJ = 1		//Rejudging
+var JudgeAC = 2		//Accepted
+var JudgeCE = 3		//Compile Error
+var JudgeRE = 4		//Runtime Error
+var JudgeWA = 5		//Wrong Answer
+var JudgeTLE = 6	//Time Limit Exceeded
+var JudgeMLE = 7	//Memory Limit Exceeded
+var JudgeOLE = 8	//Output Limit Exceeded
 
 var PrivilegeNA = 0
 var PrivilegePU = 1

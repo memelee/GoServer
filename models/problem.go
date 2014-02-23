@@ -40,7 +40,6 @@ type Problem struct {
 }
 
 // POST /problem/detail/pid/<pid>
-
 func (this *Problem) Detail(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem Detail")
 	this.Init(w, r)
