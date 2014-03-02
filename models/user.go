@@ -225,7 +225,7 @@ func (this *User) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var alt map[string]interface{}
+	alt := make(map[string]interface{})
 	if ori.Pwd != "" {
 		alt["pwd"] = ori.Pwd
 	}

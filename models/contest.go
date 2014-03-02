@@ -167,7 +167,7 @@ func (this *Contest) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var alt map[string]interface{}
+	alt := make(map[string]interface{})
 	if ori.Title != "" {
 		alt["title"] = ori.Title
 	}
