@@ -238,7 +238,7 @@ func (this *User) Update(w http.ResponseWriter, r *http.Request) {
 	if ori.School != "" {
 		alt["school"] = ori.School
 	}
-	if ori.Privilege != config.PrivilegeNA {
+	if ori.Privilege > config.PrivilegeNA {
 		alt["privilege"] = ori.Privilege
 	}
 
