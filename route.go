@@ -62,6 +62,17 @@ func exerciseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func solutionHandler(w http.ResponseWriter, r *http.Request) {
+	p := strings.Trim(r.URL.Path, "/")
+	s := strings.Split(p, "/")
+	if l := len(s); l >= 2 {
+		c := &models.Solution{}
+		m := strings.Title(s[1])
+		rv := getReflectValue(w, r)
+		callMethod(c, m, rv)
+	}
+}
+
 // Common
 
 func callMethod(c interface{}, m string, rv []reflect.Value) {

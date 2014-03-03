@@ -10,6 +10,7 @@ func main() {
 	http.HandleFunc("/problem/", problemHandler)
 	http.HandleFunc("/contest/", contestHandler)
 	http.HandleFunc("/exercise/", exerciseHandler)
+	http.HandleFunc("/solution/", solutionHandler)
 
 	http.ListenAndServe(":8888", nil)
 }
