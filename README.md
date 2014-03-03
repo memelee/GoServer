@@ -1,6 +1,6 @@
-ZJGSU Server Of New Online Judge 
+ZJGSU Server For New Online Judge 
 ========
 
 Server Written By Golang
 
-Powered By Lintz Lizt Zhanjf
+Version 0.9
