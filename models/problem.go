@@ -274,7 +274,7 @@ func (this *Problem) Submit(w http.ResponseWriter, r *http.Request) {
 	var solve int
 	if v, ok := args["solve"]; ok {
 		solve, err = strconv.Atoi(v)
-		if err != nil || solve > 1 || solve < 0 {
+		if err != nil || (solve != 0 && solve != 1) {
 			http.Error(w, "args error", 400)
 			return
 		}

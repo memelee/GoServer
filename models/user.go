@@ -299,7 +299,7 @@ func (this *User) Submit(w http.ResponseWriter, r *http.Request) {
 	var solve int
 	if v, ok := args["solve"]; ok {
 		solve, err := strconv.Atoi(v)
-		if err != nil || solve > 1 || solve < 0 {
+		if err != nil || (solve != 0 && solve != 1) {
 			http.Error(w, "args error", 400)
 			return
 		}
@@ -386,7 +386,7 @@ func (this *User) CheckQuery(args map[string]string) (query bson.M, err error) {
 	query = make(bson.M)
 
 	if v, ok := args["uid"]; ok {
-		query["uid"] = bson.M{"$regex": bson.RegEx{v, "i"}}
+		query["uid"] = v
 	}
 	if v, ok := args["nick"]; ok {
 		query["nick"] = bson.M{"$regex": bson.RegEx{v, "i"}}

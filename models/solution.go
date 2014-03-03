@@ -232,7 +232,7 @@ func (this *Solution) Status(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-// POST /solution/list/offset/<offset>/limit/<limit>/sid/<sid>/pid/<pid>/uid/<uid>/language/<language>/judge/<judge>/module/<module>/mid/<mid>/from/<from>
+// POST /solution/list/offset/<offset>/limit/<limit>/sid/<sid>/pid/<pid>/uid/<uid>/language/<language>/judge/<judge>/module/<module>/mid/<mid>/from/<from>/distinct/<0/1>
 func (this *Solution) List(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Solution List")
 	this.Init(w, r)
@@ -272,10 +272,30 @@ func (this *Solution) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var list []*solution
-	err = q.All(&list)
-	if err != nil {
-		http.Error(w, "query error", 500)
-		return
+
+	var distinct int
+	if v, ok := args["distinct"]; ok {
+		distinct, err = strconv.Atoi(v)
+		if err != nil || (distinct != 0 && distinct != 1) || query["uid"] == nil {
+			http.Error(w, "args error", 400)
+			return
+		}
+	} else {
+		distinct = 0
+	}
+
+	if distinct == 1 {
+		err = q.Sort("pid").Distinct("pid", &list)
+		if err != nil {
+			http.Error(w, "query error", 500)
+			return
+		}
+	} else {
+		err = q.All(&list)
+		if err != nil {
+			http.Error(w, "query error", 500)
+			return
+		}
 	}
 
 	b, err := json.Marshal(map[string]interface{}{"list": list})
@@ -308,7 +328,7 @@ func (this *Solution) CheckQuery(args map[string]string) (query bson.M, err erro
 		query["pid"] = pid
 	}
 	if v, ok := args["uid"]; ok {
-		query["uid"] = bson.M{"$regex": bson.RegEx{v, "i"}}
+		query["uid"] = v
 	}
 	if v, ok := args["language"]; ok {
 		var language int
