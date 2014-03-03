@@ -51,6 +51,17 @@ func contestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func exerciseHandler(w http.ResponseWriter, r *http.Request) {
+	p := strings.Trim(r.URL.Path, "/")
+	s := strings.Split(p, "/")
+	if l := len(s); l >= 2 {
+		c := &models.Exercise{}
+		m := strings.Title(s[1])
+		rv := getReflectValue(w, r)
+		callMethod(c, m, rv)
+	}
+}
+
 // Common
 
 func callMethod(c interface{}, m string, rv []reflect.Value) {
@@ -59,8 +70,9 @@ func callMethod(c interface{}, m string, rv []reflect.Value) {
 	rm.Call(rv)
 }
 
-func getReflectValue(w http.ResponseWriter, r *http.Request) []reflect.Value {
+func getReflectValue(w http.ResponseWriter, r *http.Request) (rv []reflect.Value) {
 	rw := reflect.ValueOf(w)
 	rr := reflect.ValueOf(r)
-	return []reflect.Value{rw, rr}
+	rv = []reflect.Value{rw, rr}
+	return
 }
