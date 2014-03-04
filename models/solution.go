@@ -1,6 +1,7 @@
 package models
 
 import (
+	"GoServer/config"
 	"encoding/json"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -30,7 +31,8 @@ type solution struct {
 }
 
 var sDetailSelector = bson.M{"_id": 0}
-var sListSelector = bson.M{"_id": 0, "sid": 1, "pid": 1, "uid": 1, "judge": 1, "time": 1, "memory": 1, "length": 1, "language": 1, "module": 1, "mid": 1, "create": 1}
+var sAchieveSelector = bson.M{"_id": 0, "pid": 1}
+var sListSelector = bson.M{"_id": 0, "sid": 1, "pid": 1, "uid": 1, "judge": 1, "time": 1, "memory": 1, "length": 1, "language": 1, "create": 1}
 
 type Solution struct {
 	Model
@@ -232,7 +234,39 @@ func (this *Solution) Status(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-// POST /solution/list/offset/<offset>/limit/<limit>/sid/<sid>/pid/<pid>/uid/<uid>/language/<language>/judge/<judge>/module/<module>/mid/<mid>/from/<from>/distinct/<0/1>
+// POST /solution/achieve/uid/<uid>
+func (this *Solution) Achieve(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server Solution Achieve")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	uid := args["uid"]
+
+	err := this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 500)
+		return
+	}
+
+	var list []*solution
+	err = this.DB.C("solution").Find(bson.M{"uid": uid, "judge": config.JudgeAC}).Select(sAchieveSelector).Sort("pid").Distinct("pid", &list)
+	if err != nil {
+		http.Error(w, "query error", 500)
+		return
+	}
+
+	b, err := json.Marshal(map[string]interface{}{"list": list})
+	if err != nil {
+		http.Error(w, "json error", 500)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(b)
+}
+
+// POST /solution/list/offset/<offset>/limit/<limit>/sid/<sid>/pid/<pid>/uid/<uid>/language/<language>/judge/<judge>/module/<module>/mid/<mid>/from/<from>
 func (this *Solution) List(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Solution List")
 	this.Init(w, r)
@@ -272,30 +306,10 @@ func (this *Solution) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var list []*solution
-
-	var distinct int
-	if v, ok := args["distinct"]; ok {
-		distinct, err = strconv.Atoi(v)
-		if err != nil || (distinct != 0 && distinct != 1) || query["uid"] == nil {
-			http.Error(w, "args error", 400)
-			return
-		}
-	} else {
-		distinct = 0
-	}
-
-	if distinct == 1 {
-		err = q.Sort("pid").Distinct("pid", &list)
-		if err != nil {
-			http.Error(w, "query error", 500)
-			return
-		}
-	} else {
-		err = q.All(&list)
-		if err != nil {
-			http.Error(w, "query error", 500)
-			return
-		}
+	err = q.All(&list)
+	if err != nil {
+		http.Error(w, "query error", 500)
+		return
 	}
 
 	b, err := json.Marshal(map[string]interface{}{"list": list})
