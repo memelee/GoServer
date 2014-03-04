@@ -234,6 +234,8 @@ func (this *Solution) Status(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+// POST /solution/count/pid/<pid>/uid/<uid>
+
 // POST /solution/achieve/uid/<uid>
 func (this *Solution) Achieve(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Solution Achieve")
