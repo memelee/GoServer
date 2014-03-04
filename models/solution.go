@@ -234,7 +234,64 @@ func (this *Solution) Status(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-// POST /solution/count/pid/<pid>/uid/<uid>
+// POST /solution/count/pid/<pid>/uid/<uid>/action/<accept/solve/submit>
+func (this *Solution) Count(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server Solution Count")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	query, err := this.CheckQuery(args)
+	if err != nil {
+		http.Error(w, "args error", 400)
+		return
+	}
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 500)
+		return
+	}
+
+	var count int
+	c := this.DB.C("solution")
+	switch v := args["action"]; v {
+	case "submit":
+		count, err = c.Find(query).Count()
+		if err != nil {
+			http.Error(w, "query error", 500)
+			return
+		}
+	case "accept":
+		query["judge"] = config.JudgeAC
+		count, err = c.Find(query).Count()
+		if err != nil {
+			http.Error(w, "query error", 500)
+			return
+		}
+	case "solve":
+		var list []int
+		query["judge"] = config.JudgeAC
+		err = c.Find(query).Distinct("pid", &list)
+		if err != nil {
+			http.Error(w, "query error", 500)
+			return
+		}
+		count = len(list)
+	default:
+		http.Error(w, "args error", 400)
+		return
+	}
+
+	b, err := json.Marshal(map[string]interface{}{"count": count})
+	if err != nil {
+		http.Error(w, "json error", 500)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(b)
+}
 
 // POST /solution/achieve/uid/<uid>
 func (this *Solution) Achieve(w http.ResponseWriter, r *http.Request) {
@@ -251,8 +308,8 @@ func (this *Solution) Achieve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var list []*solution
-	err = this.DB.C("solution").Find(bson.M{"uid": uid, "judge": config.JudgeAC}).Select(sAchieveSelector).Sort("pid").Distinct("pid", &list)
+	var list []int
+	err = this.DB.C("solution").Find(bson.M{"uid": uid, "judge": config.JudgeAC}).Sort("pid").Distinct("pid", &list)
 	if err != nil {
 		http.Error(w, "query error", 500)
 		return

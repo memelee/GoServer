@@ -288,23 +288,23 @@ func (this *User) Status(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-// POST /user/submit/uid/<uid>/solve/<0/1>
-func (this *User) Submit(w http.ResponseWriter, r *http.Request) {
+// POST /user/record/uid/<uid>/action/<solve/submit>
+func (this *User) Record(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server User Submit")
 	this.Init(w, r)
 
 	args := this.ParseURL(r.URL.Path[2:])
 	uid := args["uid"]
 
-	var solve int
-	if v, ok := args["solve"]; ok {
-		solve, err := strconv.Atoi(v)
-		if err != nil || (solve != 0 && solve != 1) {
-			http.Error(w, "args error", 400)
-			return
-		}
-	} else {
-		solve = 0
+	var inc int
+	switch v := args["action"]; v {
+	case "solve":
+		inc = 1
+	case "submit":
+		inc = 0
+	default:
+		http.Error(w, "args error", 400)
+		return
 	}
 
 	err := this.OpenDB()
@@ -314,12 +314,12 @@ func (this *User) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = this.DB.C("user").Update(bson.M{"uid": uid}, bson.M{"$inc": bson.M{"solve": solve, "submit": 1}})
+	err = this.DB.C("user").Update(bson.M{"uid": uid}, bson.M{"$inc": bson.M{"solve": inc, "submit": 1}})
 	if err == mgo.ErrNotFound {
 		http.Error(w, "not found", 404)
 		return
 	} else if err != nil {
-		http.Error(w, "status error", 500)
+		http.Error(w, "record error", 500)
 		return
 	}
 

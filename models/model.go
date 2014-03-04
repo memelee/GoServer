@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+type ids struct {
+	Name string `json:"name"bson:"name"`
+	Id   int    `json:"id"bson:"id"`
+}
+
 type Model struct {
 	Session *mgo.Session
 	DB      *mgo.Database
@@ -37,35 +42,22 @@ func (this *Model) CloseDB() {
 }
 
 func (this *Model) GetID(c string) (id int, err error) {
-	type result struct {
-		Value struct {
-			Id int
-		}
+	change := mgo.Change{
+		Update:    bson.M{"$inc": bson.M{"id": 1}},
+		Upsert:    true,
+		ReturnNew: true,
 	}
 
-	cmd := bson.M{
-		"findAndModify": "ids",
-		"query": bson.M{
-			"name": c,
-		},
-		"update": bson.M{
-			"$inc": bson.M{
-				"id": 1,
-			},
-		},
-		"upsert": true,
-	}
-
-	var one result
-	err = this.DB.Run(cmd, &one)
-	id = one.Value.Id
+	var one ids
+	_, err = this.DB.C("ids").Find(bson.M{"name": c}).Apply(change, &one)
+	id = one.Id
 	return
 }
 
 func (this *Model) GetTime() (ft string) {
 	t := time.Now().Unix()
 	ft = time.Unix(t, 0).Format("2006-01-02 15:04:05")
-	return ft
+	return
 }
 
 func (this *Model) LoadJson(r io.Reader, v interface{}) (err error) {
