@@ -1,6 +1,7 @@
 package models
 
 import (
+	"GoServer/config"
 	"encoding/json"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -12,8 +13,9 @@ import (
 type problem struct {
 	Pid int `json:"pid"bson:"pid"`
 
-	Time   int `json:"time"bson:"time"`
-	Memory int `json:"memory"bson:"memory"`
+	Time    int `json:"time"bson:"time"`
+	Memory  int `json:"memory"bson:"memory"`
+	Special int `json:"special"bson:"special"`
 
 	Title       string `json:"title"bson:"title"`
 	Description string `json:"description"bson:"description"`
@@ -207,6 +209,9 @@ func (this *Problem) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	if ori.Memory > 0 {
 		alt["memory"] = ori.Memory
+	}
+	if ori.Special > config.SpecialNA {
+		alt["special"] = ori.Special
 	}
 
 	err = this.OpenDB()

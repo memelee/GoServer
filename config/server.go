@@ -19,6 +19,10 @@ var JudgeTLE = 7 //Time Limit Exceeded
 var JudgeMLE = 8 //Memory Limit Exceeded
 var JudgeOLE = 9 //Output Limit Exceeded
 
+var SpecialNA = 0 //None
+var SpecialST = 1 //Standard
+var SpecialSP = 2 //Special
+
 var LanguageNA = 0   //None
 var LanguageC = 1    //C
 var LanguageCPP = 2  //C++
