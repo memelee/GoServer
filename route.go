@@ -1,7 +1,7 @@
 package main
 
 import (
-	"GoServer/models"
+	"GoServer/model"
 	"net/http"
 	"reflect"
 	"strings"
@@ -11,7 +11,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	p := strings.Trim(r.URL.Path, "/")
 	s := strings.Split(p, "/")
 	if l := len(s); l >= 2 {
-		c := &models.User{}
+		c := &model.User{}
 		m := strings.Title(s[1])
 		rv := getReflectValue(w, r)
 		callMethod(c, m, rv)
@@ -22,7 +22,7 @@ func newsHandler(w http.ResponseWriter, r *http.Request) {
 	p := strings.Trim(r.URL.Path, "/")
 	s := strings.Split(p, "/")
 	if l := len(s); l >= 2 {
-		c := &models.News{}
+		c := &model.News{}
 		m := strings.Title(s[1])
 		rv := getReflectValue(w, r)
 		callMethod(c, m, rv)
@@ -33,7 +33,7 @@ func problemHandler(w http.ResponseWriter, r *http.Request) {
 	p := strings.Trim(r.URL.Path, "/")
 	s := strings.Split(p, "/")
 	if l := len(s); l >= 2 {
-		c := &models.Problem{}
+		c := &model.Problem{}
 		m := strings.Title(s[1])
 		rv := getReflectValue(w, r)
 		callMethod(c, m, rv)
@@ -44,7 +44,7 @@ func contestHandler(w http.ResponseWriter, r *http.Request) {
 	p := strings.Trim(r.URL.Path, "/")
 	s := strings.Split(p, "/")
 	if l := len(s); l >= 2 {
-		c := &models.Contest{}
+		c := &model.Contest{}
 		m := strings.Title(s[1])
 		rv := getReflectValue(w, r)
 		callMethod(c, m, rv)
@@ -55,7 +55,7 @@ func exerciseHandler(w http.ResponseWriter, r *http.Request) {
 	p := strings.Trim(r.URL.Path, "/")
 	s := strings.Split(p, "/")
 	if l := len(s); l >= 2 {
-		c := &models.Exercise{}
+		c := &model.Exercise{}
 		m := strings.Title(s[1])
 		rv := getReflectValue(w, r)
 		callMethod(c, m, rv)
@@ -66,7 +66,7 @@ func solutionHandler(w http.ResponseWriter, r *http.Request) {
 	p := strings.Trim(r.URL.Path, "/")
 	s := strings.Split(p, "/")
 	if l := len(s); l >= 2 {
-		c := &models.Solution{}
+		c := &model.Solution{}
 		m := strings.Title(s[1])
 		rv := getReflectValue(w, r)
 		callMethod(c, m, rv)
