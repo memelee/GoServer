@@ -14,9 +14,10 @@ import (
 type problem struct {
 	Pid int `json:"pid"bson:"pid"`
 
-	Time    int `json:"time"bson:"time"`
-	Memory  int `json:"memory"bson:"memory"`
-	Special int `json:"special"bson:"special"`
+	Time    int    `json:"time"bson:"time"`
+	Memory  int    `json:"memory"bson:"memory"`
+	Special int    `json:"special"bson:"special"`
+	Expire  string `json:"expire"bson:"expire"`
 
 	Title       string `json:"title"bson:"title"`
 	Description string `json:"description"bson:"description"`
@@ -36,7 +37,7 @@ type problem struct {
 }
 
 var pDetailSelector = bson.M{"_id": 0}
-var pListSelector = bson.M{"_id": 0, "pid": 1, "title": 1, "source": 1, "solve": 1, "submit": 1, "status": 1}
+var pListSelector = bson.M{"_id": 0, "pid": 1, "title": 1, "source": 1, "solve": 1, "submit": 1, "expire": 1, "status": 1}
 
 type Problem struct {
 	class.Model
@@ -136,6 +137,7 @@ func (this *Problem) Insert(w http.ResponseWriter, r *http.Request) {
 	one.Submit = 0
 	one.Status = 0
 	one.Create = this.GetTime()
+	one.Expire = one.Create
 	one.Pid, err = this.GetID("problem")
 	if err != nil {
 		http.Error(w, "pid error", 500)
@@ -204,6 +206,9 @@ func (this *Problem) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	if ori.Out != "" {
 		alt["out"] = ori.Out
+	}
+	if ori.Expire != "" {
+		alt["expire"] = ori.Expire
 	}
 	if ori.Time > 0 {
 		alt["time"] = ori.Time
