@@ -175,15 +175,9 @@ func (this *Solution) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	alt := make(map[string]interface{})
-	if ori.Judge > 0 {
-		alt["judge"] = ori.Judge
-	}
-	if ori.Time >= 0 {
-		alt["time"] = ori.Time
-	}
-	if ori.Memory >= 0 {
-		alt["memory"] = ori.Memory
-	}
+	alt["judge"] = ori.Judge
+	alt["time"] = ori.Time
+	alt["memory"] = ori.Memory
 
 	err = this.OpenDB()
 	defer this.CloseDB()

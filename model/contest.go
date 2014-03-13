@@ -2,7 +2,6 @@ package model
 
 import (
 	"GoServer/class"
-	"GoServer/config"
 	"encoding/json"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -169,22 +168,12 @@ func (this *Contest) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	alt := make(map[string]interface{})
-	if ori.Title != "" {
-		alt["title"] = ori.Title
-	}
-	if ori.Start != "" {
-		alt["start"] = ori.Start
-	}
-	if ori.End != "" {
-		alt["end"] = ori.End
-	}
-	if ori.Encrypt > config.EncryptNA {
-		alt["encrypt"] = ori.Encrypt
-		alt["Argument"] = ori.Argument
-	}
-	if ori.List != nil {
-		alt["list"] = ori.List
-	}
+	alt["title"] = ori.Title
+	alt["start"] = ori.Start
+	alt["end"] = ori.End
+	alt["encrypt"] = ori.Encrypt
+	alt["Argument"] = ori.Argument
+	alt["list"] = ori.List
 
 	err = this.OpenDB()
 	defer this.CloseDB()

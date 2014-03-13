@@ -2,7 +2,6 @@ package model
 
 import (
 	"GoServer/class"
-	"GoServer/config"
 	"encoding/json"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -43,8 +42,48 @@ type Problem struct {
 	class.Model
 }
 
-// POST /problem/detail/pid/<pid>
+// POST /problem/expire/pid/<pid>
+func (this *Problem) Expire(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server Problem Expire")
+	this.Init(w, r)
 
+	args := this.ParseURL(r.URL.Path[2:])
+	pid, err := strconv.Atoi(args["pid"])
+	if err != nil {
+		http.Error(w, "args error", 400)
+		return
+	}
+
+	var ori problem
+	err = this.LoadJson(r.Body, &ori)
+	if err != nil {
+		http.Error(w, "load error", 400)
+		return
+	}
+
+	alt := make(map[string]interface{})
+	alt["expire"] = ori.Expire
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 500)
+		return
+	}
+
+	err = this.DB.C("problem").Update(bson.M{"pid": pid, "expire": bson.M{"$lt": ori.Expire}}, bson.M{"$set": alt})
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 404)
+		return
+	} else if err != nil {
+		http.Error(w, "expire error", 500)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
+// POST /problem/detail/pid/<pid>
 func (this *Problem) Detail(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem Detail")
 	this.Init(w, r)
@@ -183,42 +222,17 @@ func (this *Problem) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	alt := make(map[string]interface{})
-	if ori.Title != "" {
-		alt["title"] = ori.Title
-	}
-	if ori.Description != "" {
-		alt["description"] = ori.Description
-	}
-	if ori.Input != "" {
-		alt["input"] = ori.Input
-	}
-	if ori.Output != "" {
-		alt["output"] = ori.Output
-	}
-	if ori.Source != "" {
-		alt["source"] = ori.Source
-	}
-	if ori.Hint != "" {
-		alt["hint"] = ori.Hint
-	}
-	if ori.In != "" {
-		alt["in"] = ori.In
-	}
-	if ori.Out != "" {
-		alt["out"] = ori.Out
-	}
-	if ori.Expire != "" {
-		alt["expire"] = ori.Expire
-	}
-	if ori.Time > 0 {
-		alt["time"] = ori.Time
-	}
-	if ori.Memory > 0 {
-		alt["memory"] = ori.Memory
-	}
-	if ori.Special > config.SpecialNA {
-		alt["special"] = ori.Special
-	}
+	alt["title"] = ori.Title
+	alt["description"] = ori.Description
+	alt["input"] = ori.Input
+	alt["output"] = ori.Output
+	alt["source"] = ori.Source
+	alt["hint"] = ori.Hint
+	alt["in"] = ori.In
+	alt["out"] = ori.Out
+	alt["time"] = ori.Time
+	alt["memory"] = ori.Memory
+	alt["special"] = ori.Special
 
 	err = this.OpenDB()
 	defer this.CloseDB()

@@ -161,12 +161,8 @@ func (this *News) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	alt := make(map[string]interface{})
-	if ori.Title != "" {
-		alt["title"] = ori.Title
-	}
-	if ori.Content != "" {
-		alt["content"] = ori.Content
-	}
+	alt["title"] = ori.Title
+	alt["content"] = ori.Content
 
 	err = this.OpenDB()
 	defer this.CloseDB()

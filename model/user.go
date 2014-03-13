@@ -28,12 +28,12 @@ type user struct {
 	Create string `json:"create"bson:'create'`
 }
 
+var uDetailSelector = bson.M{"_id": 0}
+var uListSelector = bson.M{"_id": 0, "uid": 1, "nick": 1, "solve": 1, "submit": 1, "status": 1}
+
 type User struct {
 	class.Model
 }
-
-var uDetailSelector = bson.M{"_id": 0}
-var uListSelector = bson.M{"_id": 0, "uid": 1, "nick": 1, "solve": 1, "submit": 1, "status": 1}
 
 // POST /user/login
 func (this *User) Login(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +49,7 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 
 	ori.Pwd, err = class.EncryptPassword(ori.Pwd)
 	if err != nil {
-		http.Error(w, "encrypt error", 400)
+		http.Error(w, "encrypt error", 500)
 		return
 	}
 
@@ -110,9 +110,89 @@ func (this *User) Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+// POST /user/password/uid/<uid>
+func (this *User) Password(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server User Password")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	uid := args["uid"]
+
+	var ori user
+	err := this.LoadJson(r.Body, &ori)
+	if err != nil {
+		http.Error(w, "load error", 400)
+		return
+	}
+
+	ori.Pwd, err = class.EncryptPassword(ori.Pwd)
+	if err != nil {
+		http.Error(w, "encrypt error", 500)
+		return
+	}
+
+	alt := make(map[string]interface{})
+	alt["pwd"] = ori.Pwd
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 500)
+		return
+	}
+
+	err = this.DB.C("user").Update(bson.M{"uid": uid}, bson.M{"$set": alt})
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 404)
+		return
+	} else if err != nil {
+		http.Error(w, "update error", 500)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
+// POST /user/privilege/uid/<uid>
+func (this *User) Privilege(w http.ResponseWriter, r *http.Request) {
+	log.Println("Server User Privilege")
+	this.Init(w, r)
+
+	args := this.ParseURL(r.URL.Path[2:])
+	uid := args["uid"]
+
+	var ori user
+	err := this.LoadJson(r.Body, &ori)
+	if err != nil {
+		http.Error(w, "load error", 400)
+		return
+	}
+
+	alt := make(map[string]interface{})
+	alt["privilege"] = ori.Privilege
+
+	err = this.OpenDB()
+	defer this.CloseDB()
+	if err != nil {
+		http.Error(w, "db error", 500)
+		return
+	}
+
+	err = this.DB.C("user").Update(bson.M{"uid": uid}, bson.M{"$set": alt})
+	if err == mgo.ErrNotFound {
+		http.Error(w, "not found", 404)
+		return
+	} else if err != nil {
+		http.Error(w, "update error", 500)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
 // POST /user/detail/uid/<uid>
 func (this *User) Detail(w http.ResponseWriter, r *http.Request) {
-	log.Println("Server Problem Detail")
+	log.Println("Server User Detail")
 	this.Init(w, r)
 
 	args := this.ParseURL(r.URL.Path[2:])
@@ -186,7 +266,7 @@ func (this *User) Insert(w http.ResponseWriter, r *http.Request) {
 
 	one.Pwd, err = class.EncryptPassword(one.Pwd)
 	if err != nil {
-		http.Error(w, "encrypt error", 400)
+		http.Error(w, "encrypt error", 500)
 		return
 	}
 
@@ -239,21 +319,9 @@ func (this *User) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	alt := make(map[string]interface{})
-	if ori.Pwd != "" {
-		alt["pwd"] = ori.Pwd
-	}
-	if ori.Nick != "" {
-		alt["nick"] = ori.Nick
-	}
-	if ori.Mail != "" {
-		alt["mail"] = ori.Mail
-	}
-	if ori.School != "" {
-		alt["school"] = ori.School
-	}
-	if ori.Privilege > config.PrivilegeNA {
-		alt["privilege"] = ori.Privilege
-	}
+	alt["nick"] = ori.Nick
+	alt["mail"] = ori.Mail
+	alt["school"] = ori.School
 
 	err = this.OpenDB()
 	defer this.CloseDB()
