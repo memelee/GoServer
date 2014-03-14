@@ -18,6 +18,7 @@ type user struct {
 	Nick   string `json:"nick"bson:"nick"`
 	Mail   string `json:"mail"bson:"mail"`
 	School string `json:"school"bson:"school"`
+	Motto  string `json:"motto"bson:"motto"`
 
 	Privilege int `json:"privilege"bson:"privilege"`
 
@@ -29,7 +30,7 @@ type user struct {
 }
 
 var uDetailSelector = bson.M{"_id": 0}
-var uListSelector = bson.M{"_id": 0, "uid": 1, "nick": 1, "solve": 1, "submit": 1, "status": 1}
+var uListSelector = bson.M{"_id": 0, "uid": 1, "nick": 1, "motto": 1, "solve": 1, "submit": 1, "status": 1}
 
 type User struct {
 	class.Model
@@ -47,7 +48,7 @@ func (this *User) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ori.Pwd, err = class.EncryptPassword(ori.Pwd)
+	ori.Pwd, err = this.EncryptPassword(ori.Pwd)
 	if err != nil {
 		http.Error(w, "encrypt error", 500)
 		return
@@ -125,7 +126,7 @@ func (this *User) Password(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ori.Pwd, err = class.EncryptPassword(ori.Pwd)
+	ori.Pwd, err = this.EncryptPassword(ori.Pwd)
 	if err != nil {
 		http.Error(w, "encrypt error", 500)
 		return
@@ -264,7 +265,7 @@ func (this *User) Insert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	one.Pwd, err = class.EncryptPassword(one.Pwd)
+	one.Pwd, err = this.EncryptPassword(one.Pwd)
 	if err != nil {
 		http.Error(w, "encrypt error", 500)
 		return
@@ -322,6 +323,7 @@ func (this *User) Update(w http.ResponseWriter, r *http.Request) {
 	alt["nick"] = ori.Nick
 	alt["mail"] = ori.Mail
 	alt["school"] = ori.School
+	alt["motto"] = ori.Motto
 
 	err = this.OpenDB()
 	defer this.CloseDB()

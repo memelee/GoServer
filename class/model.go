@@ -2,7 +2,10 @@ package class
 
 import (
 	"GoServer/config"
+	"crypto/md5"
+	"crypto/sha1"
 	"encoding/json"
+	"fmt"
 	"io"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -73,5 +76,16 @@ func (this *Model) ParseURL(url string) (args map[string]string) {
 	for i := 1; i < len(list); i += 2 {
 		args[list[i-1]] = list[i]
 	}
+	return
+}
+
+func (this *Model) EncryptPassword(str string) (pwd string, err error) {
+	m := md5.New()
+	_, err = io.WriteString(m, str)
+	p1 := fmt.Sprintf("%x", m.Sum(nil))
+	s := sha1.New()
+	_, err = io.WriteString(s, str)
+	p2 := fmt.Sprintf("%x", s.Sum(nil))
+	pwd = p1 + p2
 	return
 }

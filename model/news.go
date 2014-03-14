@@ -20,7 +20,7 @@ type news struct {
 }
 
 var nDetailSelector = bson.M{"_id": 0}
-var nListSelector = bson.M{"_id": 0, "nid": 1, "title": 1, "content": 1, "status": 1}
+var nListSelector = bson.M{"_id": 0, "nid": 1, "title": 1, "content": 1, "status": 1, "create": 1}
 
 type News struct {
 	class.Model

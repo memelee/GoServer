@@ -33,7 +33,7 @@ type solution struct {
 
 var sDetailSelector = bson.M{"_id": 0}
 var sAchieveSelector = bson.M{"_id": 0, "pid": 1}
-var sListSelector = bson.M{"_id": 0, "sid": 1, "pid": 1, "uid": 1, "judge": 1, "time": 1, "memory": 1, "length": 1, "language": 1, "create": 1}
+var sListSelector = bson.M{"_id": 0, "sid": 1, "pid": 1, "uid": 1, "judge": 1, "time": 1, "memory": 1, "length": 1, "language": 1, "create": 1, "status": 1}
 
 type Solution struct {
 	class.Model
