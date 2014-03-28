@@ -5,7 +5,7 @@ var DBName = "oj"
 var DBLasting = false
 
 var ModuleNA = 0 //None
-var ModuleP = 1  //None
+var ModuleP = 1  //Problem
 var ModuleC = 2  //Contest
 var ModuleE = 3  //Exercise
 

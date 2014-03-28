@@ -228,7 +228,7 @@ func (this *News) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := this.DB.C("news").Find(bson.M{}).Select(nListSelector).Sort("nid")
+	q := this.DB.C("news").Find(bson.M{}).Select(nListSelector).Sort("-nid")
 
 	if v, ok := args["offset"]; ok {
 		offset, err := strconv.Atoi(v)
