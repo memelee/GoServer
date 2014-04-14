@@ -229,7 +229,7 @@ func (this *Solution) Status(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-// POST /solution/count/pid/<pid>/uid/<uid>/action/<accept/solve/submit>
+// POST /solution/count/pid/<pid>/uid/<uid>/module/<module>/mid/<mid>/action/<accept/solve/submit>
 func (this *Solution) Count(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Solution Count")
 	this.Init(w, r)
