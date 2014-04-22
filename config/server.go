@@ -27,6 +27,8 @@ var LanguageJAVA = 3 //Java
 
 var PrivilegeNA = 0 //None
 var PrivilegePU = 1 //Primary User
+var PrivilegeSB = 2 //Source Broswer
+var PrivilegeAD = 3 //Admin
 
 var EncryptNA = 0 //None
 var EncryptPB = 1 //Public
