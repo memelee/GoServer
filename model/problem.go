@@ -207,7 +207,7 @@ func (this *Problem) Update(w http.ResponseWriter, r *http.Request) {
 	log.Println("Server Problem Update")
 	this.Init(w, r)
 
-	args := this.ParseURL(r.URL.Path)
+	args := this.ParseURL(r.URL.Path[2:])
 	pid, err := strconv.Atoi(args["pid"])
 	if err != nil {
 		http.Error(w, "args error", 400)
@@ -382,41 +382,6 @@ func (this *Problem) List(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-// POST /problem/count/title/<title>/source/<source>/status/<status>
-func (this *Problem) Count(w http.ResponseWriter, r *http.Request) {
-	log.Println("Problem Count")
-	this.Init(w, r)
-
-	args := this.ParseURL(r.URL.Path)
-	query, err := this.CheckQuery(args)
-	if err != nil {
-		http.Error(w, "args error", 400)
-		return
-	}
-
-	err = this.OpenDB()
-	defer this.CloseDB()
-	if err != nil {
-		http.Error(w, "db error", 500)
-		return
-	}
-
-	count, err := this.DB.C("problem").Find(query).Count()
-	if err != nil {
-		http.Error(w, "query error", 500)
-		return
-	}
-
-	b, err := json.Marshal(map[string]int{"count": count})
-	if err != nil {
-		http.Error(w, "json error", 500)
-		return
-	}
-
-	w.WriteHeader(200)
-	w.Write(b)
-}
-
 func (this *Problem) CheckQuery(args map[string]string) (query bson.M, err error) {
 	query = make(bson.M)
 
@@ -434,6 +399,5 @@ func (this *Problem) CheckQuery(args map[string]string) (query bson.M, err error
 	if v, ok := args["source"]; ok {
 		query["source"] = bson.M{"$regex": bson.RegEx{v, "i"}}
 	}
-
 	return
 }
