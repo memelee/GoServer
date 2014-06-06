@@ -113,6 +113,7 @@ func (this *Contest) Insert(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "load error", 400)
 		return
 	}
+	log.Println(one)
 
 	err = this.OpenDB()
 	defer this.CloseDB()
@@ -282,7 +283,7 @@ func (this *Contest) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := this.DB.C("contest").Find(query).Select(cListSelector).Sort("cid")
+	q := this.DB.C("contest").Find(query).Select(cListSelector).Sort("-cid")
 
 	if v, ok := args["offset"]; ok {
 		offset, err := strconv.Atoi(v)

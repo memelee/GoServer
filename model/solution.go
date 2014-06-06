@@ -274,8 +274,11 @@ func (this *Solution) Count(w http.ResponseWriter, r *http.Request) {
 		}
 		count = len(list)
 	default:
-		http.Error(w, "args error", 400)
-		return
+		count, err = c.Find(query).Count()
+		if err != nil {
+			http.Error(w, "query error", 500)
+			return
+		}
 	}
 
 	b, err := json.Marshal(map[string]interface{}{"count": count})

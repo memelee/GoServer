@@ -1,36 +1,38 @@
 package config
 
-var DBHost = "127.0.0.1"
-var DBName = "oj"
-var DBLasting = false
+const DBHost = "127.0.0.1"
+const DBName = "oj"
+const DBLasting = false
 
-var ModuleNA = 0 //None
-var ModuleP = 1  //Problem
-var ModuleC = 2  //Contest
-var ModuleE = 3  //Exercise
+const CookieExpires = 1800
 
-var JudgeNA = 0  //None
-var JudgePD = 1  //Pending
-var JudgeRJ = 2  //Running & judging
-var JudgeAC = 3  //Accepted
-var JudgeCE = 4  //Compile Error
-var JudgeRE = 5  //Runtime Error
-var JudgeWA = 6  //Wrong Answer
-var JudgeTLE = 7 //Time Limit Exceeded
-var JudgeMLE = 8 //Memory Limit Exceeded
-var JudgeOLE = 9 //Output Limit Exceeded
+const ModuleNA = 0 //None
+const ModuleP = 1  //Problem
+const ModuleC = 2  //Contest
+const ModuleE = 3  //Exercise
 
-var LanguageNA = 0   //None
-var LanguageC = 1    //C
-var LanguageCPP = 2  //C++
-var LanguageJAVA = 3 //Java
+const JudgeNA = 0  //None
+const JudgePD = 1  //Pending
+const JudgeRJ = 2  //Running & judging
+const JudgeAC = 3  //Accepted
+const JudgeCE = 4  //Compile Error
+const JudgeRE = 5  //Runtime Error
+const JudgeWA = 6  //Wrong Answer
+const JudgeTLE = 7 //Time Limit Exceeded
+const JudgeMLE = 8 //Memory Limit Exceeded
+const JudgeOLE = 9 //Output Limit Exceeded
 
-var PrivilegeNA = 0 //None
-var PrivilegePU = 1 //Primary User
-var PrivilegeSB = 2 //Source Broswer
-var PrivilegeAD = 3 //Admin
+const LanguageNA = 0   //None
+const LanguageC = 1    //C
+const LanguageCPP = 2  //C++
+const LanguageJAVA = 3 //Java
 
-var EncryptNA = 0 //None
-var EncryptPB = 1 //Public
-var EncryptPT = 2 //Private
-var EncryptPW = 3 //Password
+const PrivilegeNA = 0 //None
+const PrivilegePU = 1 //Primary User
+const PrivilegeSB = 2 //Source Broswer
+const PrivilegeAD = 3 //Admin
+
+const EncryptNA = 0 //None
+const EncryptPB = 1 //Public
+const EncryptPT = 2 //Private
+const EncryptPW = 3 //Password
